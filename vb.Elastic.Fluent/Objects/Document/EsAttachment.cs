@@ -33,19 +33,17 @@ namespace vb.Elastic.Fluent.Objects.Document
             //string indexId = DocumentIndex;
             var esClient = Manager.EsClient;
 
-            if (!esClient.IndexExists(indexName).Exists)
+            if (!esClient.Indices.Exists(indexName).Exists)
             {
                 base.CreateIndex<T>();
                 //Pipeline
-                esClient.PutPipeline(PipeLineName, p => p
+                esClient.Ingest.PutPipeline(PipeLineName, p => p
                   .Description(string.Format("Document attachment pipeline for {0}", GetType()))
                   .Processors(pr => pr
                     .Attachment<T>(a => a
                       .Field(f => f.Content)
                       .TargetField(f => f.Data)
-                    )
-                    .Remove<T>(r => r
-                      .Field(f => f.Content)
+                    ).Remove<T>(r => r.Field(f => f.Field(t => t.Content))
                     )
                   )
                 );

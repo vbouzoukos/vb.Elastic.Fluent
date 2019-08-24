@@ -32,7 +32,7 @@ namespace vb.Elastic.Fluent.Indexer
             }
             if (refresh)
             {
-                esClient.Refresh(entity.IndexAlias);
+                esClient.GetIndex<T>().Refresh(Elasticsearch.Net.Refresh.True);
             }
         }
 
@@ -55,7 +55,7 @@ namespace vb.Elastic.Fluent.Indexer
             }
             if (refresh)
             {
-                esClient.Refresh(entity.IndexAlias);
+                esClient.GetIndex<T>().Refresh(Elasticsearch.Net.Refresh.True);
             }
         }
 
@@ -76,7 +76,7 @@ namespace vb.Elastic.Fluent.Indexer
             }
             if (pRefresh)
             {
-                esClient.Refresh(pEntity.IndexAlias);
+                esClient.GetIndex<T>().Refresh(Elasticsearch.Net.Refresh.True);
             }
         }
 
@@ -96,7 +96,7 @@ namespace vb.Elastic.Fluent.Indexer
             }
             if (pRefresh)
             {
-                esClient.Refresh(pEntity.IndexAlias);
+                esClient.GetIndex<T>().Refresh(Elasticsearch.Net.Refresh.True);
             }
         }
         #endregion
@@ -122,6 +122,7 @@ namespace vb.Elastic.Fluent.Indexer
             }
             var esClient = Manager.EsClient;
             var descriptor = new BulkDescriptor();
+            descriptor.TypeQueryString("_doc");
             foreach (var doc in entities)
             {
                 var idVal = Utils.GetObjectValue(idField, doc);
@@ -140,7 +141,7 @@ namespace vb.Elastic.Fluent.Indexer
             }
             if (refresh)
             {
-                esClient.Refresh(indexname);
+                esClient.GetIndex<T>().Refresh(Elasticsearch.Net.Refresh.True);
             }
         }
 
@@ -158,6 +159,7 @@ namespace vb.Elastic.Fluent.Indexer
                 var esClient = Manager.EsClient;
 
                 var descriptor = new BulkDescriptor();
+                descriptor.TypeQueryString("_doc");
                 foreach (var doc in entities)
                 {
                     descriptor.Index<T>(i => i
@@ -208,11 +210,16 @@ namespace vb.Elastic.Fluent.Indexer
         #endregion
 
         #region Maintenance
+
+        public static void RefreshIndex<T>() where T : EsDocument, new()
+        {
+            Manager.EsClient.GetIndex<T>().Refresh(Elasticsearch.Net.Refresh.True);
+        }
         /// <summary>
         /// Reindex an index with an updated mapping
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        public static void ReIndex<T>(bool removeOldIndex=true, Action<string> errorLogger = null) where T : EsDocument, new()
+        public static void ReIndex<T>(bool removeOldIndex = true, Action<string> errorLogger = null) where T : EsDocument, new()
         {
             var doc = new T();
             doc.ReIndex<T>(removeOldIndex, errorLogger);
@@ -223,7 +230,7 @@ namespace vb.Elastic.Fluent.Indexer
         public static void PurgeIndex<T>() where T : EsDocument, new()
         {
             var indexName = (new T()).IndexAlias;
-            Manager.EsClient.DeleteIndex(new DeleteIndexRequest(indexName));
+            Manager.EsClient.Indices.Delete(indexName);
         }
 
         /// <summary>
@@ -232,10 +239,10 @@ namespace vb.Elastic.Fluent.Indexer
         public static void PurgeIndexes()
         {
             var esClient = Manager.EsClient;
-            var indxes = esClient.CatIndices();
+            var indxes = esClient.Cat.Indices();
             foreach (var indx in indxes.Records)
             {
-                esClient.DeleteIndex(new DeleteIndexRequest(indx.Index)); ;
+                esClient.Indices.Delete(indx.Index);
             }
         }
         /// <summary>
@@ -252,11 +259,11 @@ namespace vb.Elastic.Fluent.Indexer
                 Repository = new FileSystemRepository(new FileSystemRepositorySettings(path))
             };
 
-            var rr = esClient.CreateRepository(rreq);
+            var rr = esClient.Snapshot.CreateRepository(rreq);
             if (rr.ServerError != null)
                 throw new Exception(rr.ServerError.Error.ToString());
             var sreq = new SnapshotRequest(backUpName, backUpName);
-            var sr = esClient.Snapshot(sreq);
+            var sr = esClient.Snapshot.Snapshot(sreq);
             if (sr.ServerError != null)
                 throw new Exception(sr.ServerError.Error.ToString());
         }
@@ -267,12 +274,12 @@ namespace vb.Elastic.Fluent.Indexer
         public static void Restore(string backUpName)
         {
             var esClient = Manager.EsClient;
-            var indxes = esClient.CatIndices();
+            var indxes = esClient.Cat.Indices();
             foreach (var indx in indxes.Records)
             {
-                esClient.CloseIndex(indx.Index);
+                esClient.Indices.Close(indx.Index);
             }
-            var r = esClient.Restore(backUpName, backUpName);
+            var r = esClient.Snapshot.Restore(backUpName, backUpName);
             if (r.ServerError != null)
                 throw new Exception(r.ServerError.Error.ToString());
         }

@@ -4,6 +4,7 @@ using Xunit;
 using System.Linq;
 using vb.Elastic.Fluent.Indexer;
 using vb.Elastic.Fluent.Search;
+using System.Collections.Generic;
 
 namespace vb.Elastic.Fluent.Test
 {
@@ -19,7 +20,7 @@ namespace vb.Elastic.Fluent.Test
             IndexManager.PurgeIndexes();
             var expected = new SampleDocument
             {
-                Id = Guid.NewGuid().ToString(),
+                Id = Guid.NewGuid().ToString().Replace("-", ""),
                 Content = @"When be draw drew ye. Defective in do recommend suffering. House it seven in spoil tiled court. Sister others marked fat missed did out use. Alteration possession dispatched collecting instrument travelling he or on. Snug give made at spot or late that mr. ",
                 Title = "Defective recommend"
             };
@@ -36,6 +37,65 @@ namespace vb.Elastic.Fluent.Test
         [Fact]
         public void Search()
         {
+            IndexManager.PurgeIndexes();
+            var expected = new List<SampleDocument>
+            {
+                new SampleDocument
+                {
+                    Id = "1",
+                    Sort = 1,
+                    Content = @"Omega",
+                    Title = "Alpha",
+                    DocDate=new DateTime(2019,11,7)
+                },
+                new SampleDocument
+                {
+                    Id = "2",
+                    Sort = 2,
+                    Content = @"delta",
+                    Title = "Alpha",
+                    DocDate=new DateTime(2019,11,7)
+                },
+                new SampleDocument
+                {
+                    Id = "3",
+                    Sort = 3,
+                    Content = @"thisfind",
+                    Title = "Mex",
+                    DocDate=new DateTime(2019,11,7)
+                },
+                new SampleDocument
+                {
+                    Id = "4",
+                    Sort = 4,
+                    Content = @"trit",
+                    Title = "pep",
+                    DocDate=new DateTime(2019,11,1)
+                },
+                new SampleDocument
+                {
+                    Id = "5",
+                    Sort = 5,
+                    Content = @"date",
+                    Title = "date",
+                    DocDate=new DateTime(2019,11,7)
+                }
+            };
+            IndexManager.BulkInsert(expected);
+            IndexManager.RefreshIndex<SampleDocument>();
+            var searchData = new FindRequest<SampleDocument>(0, 10);
+            var results = searchData
+                .Or(SearchTerm<SampleDocument>.Term(x => x.Content, "thisfind"))
+                .Or(SearchTerm<SampleDocument>.Term(x => x.Title, "alpha"))
+                .Or(SearchTerm<SampleDocument>.DateFuture(x => x.DocDate, new DateTime(2019, 11, 5)))
+                .Sort(x => x.Sort)
+                .Execute();
+            var actual = results.Documents.ToList();
+            Assert.Equal(4, actual.Count);
+            Assert.Equal("1", actual[0].Id);
+            Assert.Equal("2", actual[1].Id);
+            Assert.Equal("3", actual[2].Id);
+            Assert.Equal("5", actual[3].Id);
         }
     }
 }

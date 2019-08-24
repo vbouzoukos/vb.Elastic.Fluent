@@ -37,10 +37,10 @@ namespace vb.Elastic.Fluent.Objects.Document
             string indexName = IndexAlias;
             var esClient = Manager.EsClient;
 
-            if (!esClient.IndexExists(indexName).Exists)
+            if (!esClient.Indices.Exists(indexName).Exists)
             {
                 createIndex<T>(DocumentIndex);
-                esClient.Alias(x => x.Add(a => a.Alias(indexName).Index(DocumentIndex)));
+                esClient.Indices.PutAlias(DocumentIndex, indexName);// Alias(x => x.Add(a => a.Alias(indexName).Index(DocumentIndex)));
             }
         }
         /// <summary>
@@ -68,14 +68,14 @@ namespace vb.Elastic.Fluent.Objects.Document
         {
             bool hasErrors = false;
             var esClient = Manager.EsClient;
-            var index = esClient.GetIndex(IndexAlias);
-            var currentIndexname = index.Indices.Keys.FirstOrDefault();
-            if (currentIndexname.Name == DocumentIndex)
+            var currentIndexname = esClient.GetIndexByAlias(IndexAlias);
+            //var currentIndexname = index.Indices.Keys.FirstOrDefault();
+            if (currentIndexname == DocumentIndex)
             {
                 throw new Exception("Trying to reindex same Index");
             }
             //Create new index mapping
-            createIndex<T>(currentIndexname.Name);
+            createIndex<T>(currentIndexname);
             //start reindexing
             var reindex = esClient.Reindex<T>(currentIndexname, DocumentIndex, q => q.MatchAll());
             var o = new ReindexObserver(onError: e =>
@@ -89,15 +89,17 @@ namespace vb.Elastic.Fluent.Objects.Document
             });
             reindex.Subscribe(o);
             //Change allias pointing
-            esClient.Alias(a => a
-                .Add(aa => aa.Alias(IndexAlias).Index(DocumentIndex))
-                .Remove(aa => aa.Alias(IndexAlias).Index(currentIndexname.Name)));
+            esClient.Indices.PutAlias(DocumentIndex, IndexAlias);
+            //esClient.Indices.PutAlias(DocumentIndex, IndexAlias);
+            //Alias(a => a
+            //.Add(aa => aa.Alias(IndexAlias).Index(DocumentIndex))
+            //.Remove(aa => aa.Alias(IndexAlias).Index(currentIndexname.Name)));
             // Add completion flag            
             if (!hasErrors)
             {// Delete if successfull old index 
                 if (removeOldIndex)
                 {
-                    esClient.DeleteIndex(new DeleteIndexRequest(currentIndexname));
+                    esClient.Indices.Delete(new DeleteIndexRequest(currentIndexname));
                 }
             }
         }
@@ -112,11 +114,11 @@ namespace vb.Elastic.Fluent.Objects.Document
             {
                 Settings = indexSettings
             };
-            esClient
-                .CreateIndex(indexName, c => c
+            esClient.Indices
+                .Create(indexName, c => c
                     .InitializeUsing(indexConfig)
-                    .Mappings(ms => ms.Map<T>(m => m.AutoMap()))
-                );
+                    .Map(m=>m.AutoMap<T>())
+                    );
         }
     }
 }

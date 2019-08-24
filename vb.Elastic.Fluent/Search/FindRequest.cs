@@ -12,7 +12,7 @@ using vb.Elastic.Fluent.Search.Objects;
 
 namespace vb.Elastic.Fluent.Search
 {
-    public class FindRequest<T> where T:EsDocument, new()
+    public class FindRequest<T> where T : EsDocument, new()
     {
         #region Attributes
         private QueryInfo<T> searchInfo;
@@ -177,7 +177,7 @@ namespace vb.Elastic.Fluent.Search
         }
 
         #endregion
-      
+
         #region Search
         /// <summary>
         /// Search on index
@@ -193,7 +193,7 @@ namespace vb.Elastic.Fluent.Search
                 //create sorting
                 foreach (var sort in searchInfo.Sort)
                 {
-                    sortingQuery.Add(new SortField { Field = sort.Field, Order = sort.Ascending ? SortOrder.Ascending : SortOrder.Descending });
+                    sortingQuery.Add(new FieldSort { Field = sort.Field, Order = sort.Ascending ? SortOrder.Ascending : SortOrder.Descending });
                 }
             }
             else
@@ -248,6 +248,10 @@ namespace vb.Elastic.Fluent.Search
             }
             //Send request
             var searchResponse = Manager.EsClient.Search<T>(searchRequest);
+            if (!searchResponse.IsValid)
+            {
+                throw new Exception("Low Level Fail Call.", searchResponse.OriginalException);
+            }
             //handle result
             var result = new QueryResult<T>
             {
