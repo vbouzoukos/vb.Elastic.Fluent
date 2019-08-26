@@ -1,20 +1,21 @@
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
-using vb.Elastic.Fluent.Core;
-using Xunit;
 using System.Linq;
+using vb.Elastic.Fluent.Core;
 using vb.Elastic.Fluent.Indexer;
 using vb.Elastic.Fluent.Search;
 using System.Collections.Generic;
 
 namespace vb.Elastic.Fluent.Test
 {
+    [TestClass]
     public class IndexTest
     {
         public IndexTest()
         {
             Manager.Instance.Connect("1", "http://localhost:9200", "test");
         }
-        [Fact]
+        [TestMethod]
         public void Indexing()
         {
             IndexManager.PurgeIndexes();
@@ -27,14 +28,14 @@ namespace vb.Elastic.Fluent.Test
             IndexManager.IndexEntity(expected, true);
             var searchData = new FindRequest<SampleDocument>(0, 10);
             var results = searchData
-                .And(SearchTerm<SampleDocument>.Term(x => x.Id, expected.Id))
+                .And(SearchTerm<SampleDocument>.Term(x=>x.Id, expected.Id))
                 .Execute();
             var actual = results.Documents.FirstOrDefault();
-            Assert.Equal(expected.Id, actual.Id);
-            Assert.Equal(expected.Content, actual.Content);
-            Assert.Equal(expected.Title, actual.Title);
+            Assert.AreEqual(expected.Id, actual.Id);
+            Assert.AreEqual(expected.Content, actual.Content);
+            Assert.AreEqual(expected.Title, actual.Title);
         }
-        [Fact]
+        [TestMethod]
         public void Search()
         {
             IndexManager.PurgeIndexes();
