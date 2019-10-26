@@ -9,6 +9,7 @@
     <Product>Vb.Elastic.Fluent</Product>
     <Authors>Vasileios Bouzoukos</Authors>
     <Description>A simple library to connect insert and search Items in elasticsearch nodes</Description>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
