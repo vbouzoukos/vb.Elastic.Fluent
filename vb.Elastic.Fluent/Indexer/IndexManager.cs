@@ -32,10 +32,30 @@ namespace vb.Elastic.Fluent.Indexer
             }
             if (refresh)
             {
-                esClient.GetIndex<T>().Refresh(Elasticsearch.Net.Refresh.True);
+                esClient.Indices.Refresh(entity.IndexAlias);
             }
         }
+        /// <summary>
+        /// Used to index a document that contains an attachment( eg. docx, pdf ,excel etc)
+        /// </summary>
+        /// <param name="entity">The entity that will be updated</param>
+        /// <param name="refresh">To enable the new entry to be available for next search (optional default:false)</param>
+        public static void IndexAttachment<T>(T entity, bool refresh = false) where T : EsAttachment
+        {
+            var esClient = Manager.EsClient;
+            entity.CreateIndex<T>();
 
+            var response = esClient.Index(entity, p => p.Index(entity.IndexAlias).Pipeline(entity.PipeLineName));
+
+            if (response.Result == Result.Error)
+            {
+                throw new Exception(response.OriginalException.Message);
+            }
+            if (refresh)
+            {
+                esClient.Indices.Refresh(entity.IndexAlias);
+            }
+        }
         /// <summary>
         /// Used to index a document with a pipeline method
         /// </summary>
@@ -55,48 +75,48 @@ namespace vb.Elastic.Fluent.Indexer
             }
             if (refresh)
             {
-                esClient.GetIndex<T>().Refresh(Elasticsearch.Net.Refresh.True);
+                esClient.Indices.Refresh(entity.IndexAlias);
             }
         }
 
         /// <summary>
         /// Used to updated an existing document
         /// </summary>
-        /// <param name="pEntity">The document entity</param>
-        /// <param name="pRefresh">Flag to refresh index state with new data</param>
-        public static void UpdateEntity<T>(T pEntity, bool pRefresh = false) where T : EsDocument
+        /// <param name="entity">The document entity</param>
+        /// <param name="refresh">Flag to refresh index state with new data</param>
+        public static void UpdateEntity<T>(T entity, bool refresh = false) where T : EsDocument
         {
             var esClient = Manager.EsClient;
-            pEntity.CreateIndex<T>();
+            entity.CreateIndex<T>();
 
-            var response = esClient.Update<T, T>(pEntity, p => p.Doc(pEntity).Index(pEntity.IndexAlias));
+            var response = esClient.Update<T, T>(entity, p => p.Doc(entity).Index(entity.IndexAlias));
             if (response.Result == Result.Error)
             {
                 throw new Exception(response.OriginalException.Message);
             }
-            if (pRefresh)
+            if (refresh)
             {
-                esClient.GetIndex<T>().Refresh(Elasticsearch.Net.Refresh.True);
+                esClient.Indices.Refresh(entity.IndexAlias);
             }
         }
 
         /// <summary>
         /// Deletes a document from the index
         /// </summary>
-        /// <param name="pEntity">The document entity</param>
-        /// <param name="pRefresh">Flag to refresh index state with new data</param>
-        public static void DeleteEntity<T>(T pEntity, bool pRefresh = false) where T : EsDocument
+        /// <param name="entity">The document entity</param>
+        /// <param name="refresh">Flag to refresh index state with new data</param>
+        public static void DeleteEntity<T>(T entity, bool refresh = false) where T : EsDocument
         {
             var esClient = Manager.EsClient;
-            pEntity.CreateIndex<T>();
-            var response = esClient.Delete<T>(pEntity, p => p.Index(pEntity.IndexAlias));
+            entity.CreateIndex<T>();
+            var response = esClient.Delete<T>(entity, p => p.Index(entity.IndexAlias));
             if (response.Result == Result.Error)
             {
                 throw new Exception(response.OriginalException.Message);
             }
-            if (pRefresh)
+            if (refresh)
             {
-                esClient.GetIndex<T>().Refresh(Elasticsearch.Net.Refresh.True);
+                esClient.Indices.Refresh(entity.IndexAlias);
             }
         }
         #endregion
@@ -141,7 +161,7 @@ namespace vb.Elastic.Fluent.Indexer
             }
             if (refresh)
             {
-                esClient.GetIndex<T>().Refresh(Elasticsearch.Net.Refresh.True);
+                esClient.Indices.Refresh(indexname);
             }
         }
 
@@ -149,7 +169,8 @@ namespace vb.Elastic.Fluent.Indexer
         /// Inserts the passed data into elastic search index
         /// </summary>
         /// <param name="entities">The list of the entities that will be indexed</param>
-        public static void BulkInsert<T>(List<T> entities) where T : EsDocument
+        /// <param name="refresh">Flag to refresh index state with new data</param>
+        public static void BulkInsert<T>(List<T> entities, bool refresh = true) where T : EsDocument
         {
             if (entities.Count > 0)
             {
@@ -171,6 +192,10 @@ namespace vb.Elastic.Fluent.Indexer
                 {
                     throw new Exception(response.OriginalException.Message);
                 }
+                if (refresh)
+                {
+                    esClient.Indices.Refresh(indexName);
+                }
             }
             else
             {
@@ -181,7 +206,8 @@ namespace vb.Elastic.Fluent.Indexer
         /// Inserts the passed data into elastic search index Async Mode
         /// </summary>
         /// <param name="entities">The list of the entities that will be indexed</param>
-        public static async void BulkAsyncInsert<T>(List<T> entities) where T : EsDocument
+        /// <param name="refresh">Flag to refresh index state with new data</param>
+        public static async void BulkAsyncInsert<T>(List<T> entities, bool refresh = true) where T : EsDocument
         {
             if (entities.Count > 0)
             {
@@ -201,6 +227,10 @@ namespace vb.Elastic.Fluent.Indexer
                 {
                     throw new Exception(response.OriginalException.Message);
                 }
+                if (refresh)
+                {
+                    esClient.Indices.Refresh(indexName);
+                }
             }
             else
             {
@@ -213,7 +243,8 @@ namespace vb.Elastic.Fluent.Indexer
 
         public static void RefreshIndex<T>() where T : EsDocument, new()
         {
-            Manager.EsClient.GetIndex<T>().Refresh(Elasticsearch.Net.Refresh.True);
+            var doc = new T();
+            Manager.EsClient.Indices.Refresh(doc.IndexAlias);
         }
         /// <summary>
         /// Reindex an index with an updated mapping

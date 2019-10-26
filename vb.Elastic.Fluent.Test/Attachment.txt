@@ -1,0 +1,1 @@
+Encode file to Base64 online and embed it into any text document such as HTML, JSON, or XML.

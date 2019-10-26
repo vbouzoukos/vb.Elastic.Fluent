@@ -18,13 +18,23 @@ namespace vb.Elastic.Fluent.Test
     {
         [Keyword]
         public string Id { get; set; }
-        [Number(Name = "sort")]
-        public int Sort { get; set; }
+        [Keyword]
+        public string Sort { get; set; }
         [Text]
         public string Title { get; set; }
         [Text]
         public string Content { get; set; }
         [Date(Name = "docdate")]
         public DateTime DocDate { get; set; }
+    }
+    [ElasticsearchType(RelationName = "sampleatt", IdProperty = nameof(Id))]
+    internal class SampleAttachment : EsAttachment
+    {
+        [Keyword]
+        public string Id { get; set; }
+        [Text]
+        public string Title { get; set; }
+        [Date(Name = "docdate")]
+        public DateTime Uploaded { get; set; }
     }
 }
