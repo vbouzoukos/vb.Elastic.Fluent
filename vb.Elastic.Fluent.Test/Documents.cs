@@ -27,6 +27,12 @@ namespace vb.Elastic.Fluent.Test
         [Date(Name = "docdate")]
         public DateTime DocDate { get; set; }
     }
+    [ElasticsearchType(RelationName = "sampleweight", IdProperty = nameof(Id))]
+    internal class SampleWeight: EsDocument
+    {
+        [Number]
+        public int Weight { get; set; }
+    }
     [ElasticsearchType(RelationName = "sampleatt", IdProperty = nameof(Id))]
     internal class SampleAttachment : EsAttachment
     {
@@ -36,5 +42,15 @@ namespace vb.Elastic.Fluent.Test
         public string Title { get; set; }
         [Date(Name = "docdate")]
         public DateTime Uploaded { get; set; }
+    }
+    [ElasticsearchType(RelationName = "sampleloc", IdProperty = nameof(Id))]
+    internal class SampleLocation:EsDocument
+    {
+        [Keyword]
+        public string Id { get; set; }
+        [Text]
+        public string Description { get; set; }
+        [GeoPoint]
+        public GeoLocation Location { get; set; }
     }
 }

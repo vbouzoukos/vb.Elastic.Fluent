@@ -184,5 +184,114 @@ namespace vb.Elastic.Fluent.Test
             var actual = results.Documents.ToList();
             Assert.Equal(expected.Count, actual.Count);
         }
+
+        [Fact]
+        public void GeoSearch()
+        {
+            IndexManager.PurgeIndexes();
+            var expected = new List<SampleLocation>
+            {
+                new SampleLocation
+                {
+                    Description = "alpha",
+                    Location = new Nest.GeoLocation(38.044842, 23.728171)
+                },
+                new SampleLocation
+                {
+                    Description = "beta",
+                    Location = new Nest.GeoLocation(38.045316, 23.725822)
+                },
+                new SampleLocation
+                {
+                    Description = "gama",
+                    Location = new Nest.GeoLocation(38.044378, 23.723365)
+                },
+                new SampleLocation
+                {
+                    Description = "out",
+                    Location = new Nest.GeoLocation(37.862905, 22.924569)
+                }
+            };
+            IndexManager.BulkInsert(expected);
+            var searchData = new FindRequest<SampleLocation>(0, 10);
+            var results = searchData
+                .Or(SearchTerm<SampleLocation>.Distance(x => x.Location, 38.044631, 23.724513, 500))
+                .GeoSort(x => x.Location, 38.044631, 23.724513)
+                .Execute();
+            var actual = results.Documents.ToList();
+            Assert.Equal(3, actual.Count);
+            Assert.Equal(expected[2].Description, actual[0].Description);
+            Assert.Equal(expected[1].Description, actual[1].Description);
+            Assert.Equal(expected[0].Description, actual[2].Description);
+        }
+        [Fact]
+        public void Ranges()
+        {
+            IndexManager.PurgeIndexes();
+            var expected = new List<SampleWeight>
+            {
+                new SampleWeight
+                {
+                    Weight = 100
+                },
+                new SampleWeight
+                {
+                    Weight = 110
+                },
+                new SampleWeight
+                {
+                    Weight = 120
+                },
+                new SampleWeight
+                {
+                    Weight = 130
+                },
+                new SampleWeight
+                {
+                    Weight = 200
+                },
+                new SampleWeight
+                {
+                    Weight = 210
+                },
+                new SampleWeight
+                {
+                    Weight = 220
+                },
+                new SampleWeight
+                {
+                    Weight = 230
+                },
+            };
+            IndexManager.BulkInsert(expected);
+            var searchData = new FindRequest<SampleWeight>(0, 10);
+            var results = searchData
+                .Or(SearchTerm<SampleWeight>.Range(x => x.Weight, 119, 201))
+                .Sort(x => x.Weight)
+                .Execute();
+            var actual = results.Documents.ToList();
+            Assert.Equal(3, actual.Count);
+        }
+
+        [Fact]
+        public void Nested()
+        {
+        }
+        [Fact]
+        public void Term()
+        {
+        }
+        [Fact]
+        public void Prefix()
+        {
+        }
+        [Fact]
+        public void InWildCard()
+        {
+        }
+        [Fact]
+        public void Dates()
+        {
+        }
     }
 }

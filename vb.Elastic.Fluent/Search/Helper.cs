@@ -154,14 +154,6 @@ namespace vb.Elastic.Fluent.Search
         {
             switch (queryType)
             {
-                case EnQueryType.Match:
-                    return new MatchQuery
-                    {
-                        Field = field,
-                        Query = query.Value.ToString(),
-                        Fuzziness = Fuzziness.Auto,
-                        Boost = boost
-                    };
                 case EnQueryType.Term:
                     return new TermQuery
                     {
@@ -194,6 +186,40 @@ namespace vb.Elastic.Fluent.Search
                         if (query.To != null)
                         {
                             q.LessThan = (DateTime)query.To;
+                        }
+                        return q;
+                    }
+                case EnQueryType.GreaterThan:
+                    {
+                        var q = new NumericRangeQuery
+                        {
+                            Field = field,
+                            GreaterThan = Convert.ToDouble(query.From),
+                            Boost = boost
+                        };
+                        return q;
+                    }
+                case EnQueryType.LessThan:
+                    {
+                        var q = new NumericRangeQuery
+                        {
+                            Field = field,
+                            LessThan = Convert.ToDouble(query.From),
+                            Boost = boost
+                        };
+                        return q;
+                    }
+                case EnQueryType.Range:
+                    {
+                        var q = new NumericRangeQuery
+                        {
+                            Field = field,
+                            GreaterThan = Convert.ToDouble(query.From),
+                            Boost = boost
+                        };
+                        if (query.To != null)
+                        {
+                            q.LessThan = Convert.ToDouble(query.To);
                         }
                         return q;
                     }
@@ -231,10 +257,11 @@ namespace vb.Elastic.Fluent.Search
                         return q;
                     }
                 default:
-                    return new CommonTermsQuery
+                    return new MatchQuery
                     {
                         Field = field,
                         Query = query.Value.ToString(),
+                        Fuzziness = Fuzziness.Auto,
                         Boost = boost
                     };
             }

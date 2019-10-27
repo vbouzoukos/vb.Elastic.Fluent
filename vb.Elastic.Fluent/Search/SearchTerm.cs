@@ -43,20 +43,6 @@ namespace vb.Elastic.Fluent.Search
             };
         }
         /// <summary>
-        /// Common term search where stop words are included with lower priority
-        /// </summary>
-        /// <param name="field">The field where we search for matching terms</param>
-        /// <param name="query">The search term</param>
-        /// <param name="nestedField">The nested field in case we want to search on a nested field in the field given</param>
-        /// <param name="boost">Boost used on results</param>
-        public static SearchTerm<T> CommonTerm(Expression<Func<T, object>> field, object query, Expression<Func<T, object>> nestedField = null, double? boost = null)
-        {
-            return new SearchTerm<T>()
-            {
-                Field = new EsField<T>(field, new EsValue(query), EnQueryOperator.And, EnQueryType.CommonTerm, nestedField, boost)
-            };
-        }
-        /// <summary>
         /// Search for keyword
         /// </summary>
         /// <param name="field">The field where we search for matching terms</param>
@@ -106,46 +92,49 @@ namespace vb.Elastic.Fluent.Search
         /// Search for documents between a numeric range
         /// </summary>
         /// <param name="field">The field where we search for matching terms</param>
-        /// <param name="from">From this number</param>
-        /// <param name="to">To this number</param>
+        /// <param name="from">From this number/date</param>
+        /// <param name="to">To this number/dste</param>
         /// <param name="nestedField">The nested field in case we want to search on a nested field in the field given</param>
         /// <param name="boost">Boost used on results</param>
         /// <returns></returns>
         public static SearchTerm<T> Range(Expression<Func<T, object>> field, object from, object to, Expression<Func<T, object>> nestedField = null, double? boost = null)
         {
+            var queryType = (from is DateTime) ? EnQueryType.DateRange : EnQueryType.Range;
             return new SearchTerm<T>()
             {
-                Field = new EsField<T>(field, Helper.ExtractQueryValue(from, to), EnQueryOperator.And, EnQueryType.DateRange, nestedField, boost)
+                Field = new EsField<T>(field, Helper.ExtractQueryValue(from, to), EnQueryOperator.And, queryType, nestedField, boost)
             };
         }
         /// <summary>
         /// Search for documents less than than source number
         /// </summary>
         /// <param name="field">The field where we search for matching terms</param>
-        /// <param name="number">Search date</param>
+        /// <param name="value">Search term</param>
         /// <param name="nestedField">The nested field in case we want to search on a nested field in the field given</param>
         /// <param name="boost">Boost used on results</param>
         /// <returns></returns>
-        public static SearchTerm<T> GreaterThan(Expression<Func<T, object>> field, object number, Expression<Func<T, object>> nestedField = null, double? boost = null)
+        public static SearchTerm<T> GreaterThan(Expression<Func<T, object>> field, object value, Expression<Func<T, object>> nestedField = null, double? boost = null)
         {
+            var queryType = (value is DateTime) ? EnQueryType.DatePast : EnQueryType.GreaterThan;
             return new SearchTerm<T>()
             {
-                Field = new EsField<T>(field, new EsValue(number), EnQueryOperator.And, EnQueryType.DatePast, nestedField, boost)
+                Field = new EsField<T>(field, new EsValue(value), EnQueryOperator.And, queryType, nestedField, boost)
             };
         }
         /// <summary>
         /// Search for documents greater than source number
         /// </summary>
         /// <param name="field">The field where we search for matching terms</param>
-        /// <param name="number">Search number</param>
+        /// <param name="value">Search term</param>
         /// <param name="nestedField">The nested field in case we want to search on a nested field in the field given</param>
         /// <param name="boost">Boost used on results</param>
         /// <returns></returns>
-        public static SearchTerm<T> LessThan(Expression<Func<T, object>> field, object number, Expression<Func<T, object>> nestedField = null, double? boost = null)
+        public static SearchTerm<T> LessThan(Expression<Func<T, object>> field, object value, Expression<Func<T, object>> nestedField = null, double? boost = null)
         {
+            var queryType = (value is DateTime) ? EnQueryType.DateFuture : EnQueryType.LessThan;
             return new SearchTerm<T>()
             {
-                Field = new EsField<T>(field, new EsValue(number), EnQueryOperator.And, EnQueryType.DateFuture, nestedField, boost)
+                Field = new EsField<T>(field, new EsValue(value), EnQueryOperator.And, queryType, nestedField, boost)
             };
         }
 

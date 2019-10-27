@@ -77,6 +77,11 @@ namespace vb.Elastic.Fluent.Search
             return this;
         }
 
+        public FindRequest<T> GeoSort(Expression<Func<T, object>> field, double lat, double lon, bool ascending = true)
+        {
+            searchInfo.Sort.Add(new EsGeoSort<T>(field, lat, lon, ascending));
+            return this;
+        }
         /// <summary>
         /// Used to trim result fields
         /// </summary>
@@ -193,7 +198,15 @@ namespace vb.Elastic.Fluent.Search
                 //create sorting
                 foreach (var sort in searchInfo.Sort)
                 {
-                    sortingQuery.Add(new FieldSort { Field = sort.Field, Order = sort.Ascending ? SortOrder.Ascending : SortOrder.Descending });
+                    if (sort is EsGeoSort<T>)
+                    {
+                        var gsort = (EsGeoSort<T>)sort;
+                        sortingQuery.Add(new GeoDistanceSort { Field = gsort.Field, Unit = DistanceUnit.Meters, DistanceType = GeoDistanceType.Plane, Points = gsort.Points, Order = gsort.Ascending ? SortOrder.Ascending : SortOrder.Descending });
+                    }
+                    else
+                    {
+                        sortingQuery.Add(new FieldSort { Field = sort.Field, Order = sort.Ascending ? SortOrder.Ascending : SortOrder.Descending });
+                    }
                 }
             }
             else
