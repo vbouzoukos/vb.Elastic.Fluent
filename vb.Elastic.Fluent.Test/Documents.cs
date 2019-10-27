@@ -33,6 +33,13 @@ namespace vb.Elastic.Fluent.Test
         [Number]
         public int Weight { get; set; }
     }
+    [ElasticsearchType(RelationName = "sampleweight", IdProperty = nameof(Id))]
+    internal class SampleDate : EsDocument
+    {
+        [Date]
+        public DateTime DocDate { get; set; }
+    }
+
     [ElasticsearchType(RelationName = "sampleatt", IdProperty = nameof(Id))]
     internal class SampleAttachment : EsAttachment
     {

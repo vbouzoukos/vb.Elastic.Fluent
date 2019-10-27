@@ -115,7 +115,7 @@ namespace vb.Elastic.Fluent.Search
         /// <returns></returns>
         public static SearchTerm<T> GreaterThan(Expression<Func<T, object>> field, object value, Expression<Func<T, object>> nestedField = null, double? boost = null)
         {
-            var queryType = (value is DateTime) ? EnQueryType.DatePast : EnQueryType.GreaterThan;
+            var queryType = (value is DateTime) ? EnQueryType.DateFuture : EnQueryType.GreaterThan;
             return new SearchTerm<T>()
             {
                 Field = new EsField<T>(field, new EsValue(value), EnQueryOperator.And, queryType, nestedField, boost)
@@ -131,7 +131,7 @@ namespace vb.Elastic.Fluent.Search
         /// <returns></returns>
         public static SearchTerm<T> LessThan(Expression<Func<T, object>> field, object value, Expression<Func<T, object>> nestedField = null, double? boost = null)
         {
-            var queryType = (value is DateTime) ? EnQueryType.DateFuture : EnQueryType.LessThan;
+            var queryType = (value is DateTime) ? EnQueryType.DatePast : EnQueryType.LessThan;
             return new SearchTerm<T>()
             {
                 Field = new EsField<T>(field, new EsValue(value), EnQueryOperator.And, queryType, nestedField, boost)
