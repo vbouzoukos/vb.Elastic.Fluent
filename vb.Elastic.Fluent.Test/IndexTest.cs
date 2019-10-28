@@ -339,6 +339,33 @@ namespace vb.Elastic.Fluent.Test
         [Fact]
         public void Nested()
         {
+            IndexManager.PurgeIndexes();
+            var expected = new List<SampleNest>
+            {
+                new SampleNest
+                {
+                    Id="1",
+                    Title = "Nested Test",
+                    Items=new List<NestedEntity>
+                    {
+                        new NestedEntity
+                        {
+                            Created=new DateTime(2019,3,7),
+                            Code = 3,
+                            Data = "item"
+                        }
+                    }
+                }
+            };
+            IndexManager.BulkInsert(expected);
+            var searchData = new FindRequest<SampleNest>(0, 10);
+            var results = searchData
+                .And(SearchTerm<SampleNest>.Range(x => x.Items, new DateTime(2019, 2, 7), new DateTime(2019, 6, 1), x => x.Items[0].Created))
+                .And(SearchTerm<SampleNest>.Range(x => x.Items, 2, 5, x => x.Items[0].Code))
+                .And(SearchTerm<SampleNest>.Term(x => x.Items, "item", x => x.Items[0].Data))
+                .Execute();
+            var actual = results.Documents.ToList();
+            Assert.Equal(expected.Count, actual.Count);
         }
         [Fact]
         public void DateRange()
@@ -447,14 +474,171 @@ namespace vb.Elastic.Fluent.Test
         [Fact]
         public void Term()
         {
+            IndexManager.PurgeIndexes();
+            var expected = new List<SampleItem>
+            {
+                new SampleItem
+                {//0
+                    Id="1",
+                    Code ="A",
+                    Sequence=1
+                },
+                new SampleItem
+                {//1
+                    Id="2",
+                    Code ="B",
+                    Sequence=2
+                }
+            };
+            IndexManager.BulkInsert(expected);
+            var searchData = new FindRequest<SampleItem>(0, 10);
+            var results = searchData
+                .And(SearchTerm<SampleItem>.Term(x => x.Code, "A"))
+                .Execute();
+            var actual = results.Documents.ToList();
+            Assert.Single(actual);
+            Assert.Equal(expected[0].Id, actual[0].Id);
+
+            searchData = new FindRequest<SampleItem>(0, 10);
+            results = searchData
+                .And(SearchTerm<SampleItem>.Term(x => x.Sequence, 2))
+                .Execute();
+            actual = results.Documents.ToList();
+            Assert.Single(actual);
+            Assert.Equal(expected[1].Id, actual[0].Id);
         }
         [Fact]
         public void Prefix()
         {
+            IndexManager.PurgeIndexes();
+            var expected = new List<SampleDocument>
+            {
+                new SampleDocument
+                {
+                    Id = "1",
+                    Sort = "1",
+                    Content = @"This a test",
+                    Title = "Alpha",
+                    DocDate=new DateTime(2019,11,7)
+                },
+                new SampleDocument
+                {
+                    Id = "2",
+                    Sort = "2",
+                    Content = @"Run a prefix test thisisasample",
+                    Title = "Alpha",
+                    DocDate=new DateTime(2019,11,7)
+                },
+                new SampleDocument
+                {
+                    Id = "3",
+                    Sort = "3",
+                    Content = @"no return test",
+                    Title = "Mex",
+                    DocDate=new DateTime(2019,11,7)
+                },
+                new SampleDocument
+                {
+                    Id = "4",
+                    Sort = "4",
+                    Content = @"does not exist",
+                    Title = "pep",
+                    DocDate=new DateTime(2019,11,1)
+                },
+                new SampleDocument
+                {
+                    Id = "5",
+                    Sort = "5",
+                    Content = @"date",
+                    Title = "date",
+                    DocDate=new DateTime(2019,11,7)
+                }
+            };
+            IndexManager.BulkInsert(expected);
+            var searchData = new FindRequest<SampleDocument>(0, 10);
+            var results = searchData
+                .And(SearchTerm<SampleDocument>.Prefix(x => x.Content, "this"))
+                .Sort(x => x.Sort)
+                .Execute();
+            var actual = results.Documents.ToList();
+            Assert.Equal(2, actual.Count);
+            Assert.Equal(expected[0].Id, actual[0].Id);
+            Assert.Equal(expected[0].Sort, actual[0].Sort);
+            Assert.Equal(expected[0].Title, actual[0].Title);
+            Assert.Equal(expected[0].DocDate, actual[0].DocDate);
+            Assert.Equal(expected[0].Content, actual[0].Content);
+            Assert.Equal(expected[1].Id, actual[1].Id);
+            Assert.Equal(expected[1].Sort, actual[1].Sort);
+            Assert.Equal(expected[1].Title, actual[1].Title);
+            Assert.Equal(expected[1].DocDate, actual[1].DocDate);
+            Assert.Equal(expected[1].Content, actual[1].Content);
+
         }
         [Fact]
         public void InWildCard()
         {
+            IndexManager.PurgeIndexes();
+            var expected = new List<SampleDocument>
+            {
+                new SampleDocument
+                {
+                    Id = "1",
+                    Sort = "1",
+                    Content = @"This a test",
+                    Title = "Alpha",
+                    DocDate=new DateTime(2019,11,7)
+                },
+                new SampleDocument
+                {
+                    Id = "2",
+                    Sort = "2",
+                    Content = @"Run a prefix test thisisasample",
+                    Title = "Alpha",
+                    DocDate=new DateTime(2019,11,7)
+                },
+                new SampleDocument
+                {
+                    Id = "3",
+                    Sort = "3",
+                    Content = @"no return test",
+                    Title = "Mex",
+                    DocDate=new DateTime(2019,11,7)
+                },
+                new SampleDocument
+                {
+                    Id = "4",
+                    Sort = "4",
+                    Content = @"does not exist",
+                    Title = "pep",
+                    DocDate=new DateTime(2019,11,1)
+                },
+                new SampleDocument
+                {
+                    Id = "5",
+                    Sort = "5",
+                    Content = @"date",
+                    Title = "date",
+                    DocDate=new DateTime(2019,11,7)
+                }
+            };
+            IndexManager.BulkInsert(expected);
+            var searchData = new FindRequest<SampleDocument>(0, 10);
+            var results = searchData
+                .And(SearchTerm<SampleDocument>.Wildcard(x => x.Content, "th*s"))
+                .Sort(x => x.Sort)
+                .Execute();
+            var actual = results.Documents.ToList();
+            Assert.Equal(2, actual.Count);
+            Assert.Equal(expected[0].Id, actual[0].Id);
+            Assert.Equal(expected[0].Sort, actual[0].Sort);
+            Assert.Equal(expected[0].Title, actual[0].Title);
+            Assert.Equal(expected[0].DocDate, actual[0].DocDate);
+            Assert.Equal(expected[0].Content, actual[0].Content);
+            Assert.Equal(expected[1].Id, actual[1].Id);
+            Assert.Equal(expected[1].Sort, actual[1].Sort);
+            Assert.Equal(expected[1].Title, actual[1].Title);
+            Assert.Equal(expected[1].DocDate, actual[1].DocDate);
+            Assert.Equal(expected[1].Content, actual[1].Content);
         }
     }
 }

@@ -158,6 +158,7 @@ namespace vb.Elastic.Fluent.Search
                     return new TermQuery
                     {
                         Field = field,
+                        IsVerbatim = true,
                         Value = query.Value.ToString(),
                         Boost = boost
                     };
@@ -251,7 +252,7 @@ namespace vb.Elastic.Fluent.Search
                             Field = field,
                             Distance = new Distance(areaQuery.Distance),
                             Location = areaQuery.Center,
-                            DistanceType = GeoDistanceType.Arc,
+                            DistanceType = GeoDistanceType.Plane,
                             Boost = boost
                         };
                         return q;
