@@ -3,15 +3,15 @@
     internal enum EnQueryOperator
     {
         /// <summary>
-        /// The field must occur in the results
+        /// The clause must occur in the results
         /// </summary>
-        And,
+        Must,
         /// <summary>
-        /// The field should occur in the results
+        /// The clause should occur in the results
         /// </summary>
-        Or,
+        Should,
         /// <summary>
-        /// The field should not be in the results
+        /// The clause must not be in the results
         /// </summary>
         Not
     }

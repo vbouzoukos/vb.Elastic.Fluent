@@ -15,7 +15,7 @@ namespace vb.Elastic.Fluent.Objects.Document
         {
             get
             {
-                return string.Format("{0}-{1}", Manager.Instance.InstallationName, GetType().Name.ToLower());
+                return string.Format("{0}-{1}", Manager.Instance.ApplicationName, GetType().Name.ToLower());
             }
         }
         /// <summary>
@@ -25,7 +25,7 @@ namespace vb.Elastic.Fluent.Objects.Document
         {
             get
             {
-                return string.Format("{0}-{1}-{2}", Manager.Instance.InstallationName, GetType().Name.ToLower(), Manager.Instance.AppVersion);
+                return string.Format("{0}-{1}-{2}", Manager.Instance.ApplicationName, GetType().Name.ToLower(), Manager.Instance.AppVersion);
             }
         }
         /// <summary>

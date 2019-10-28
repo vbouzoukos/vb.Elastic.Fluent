@@ -15,7 +15,8 @@ namespace vb.Elastic.Fluent.Search
     public class FindRequest<T> where T : EsDocument, new()
     {
         #region Attributes
-        private QueryInfo<T> searchInfo;
+        QueryInfo<T> searchInfo;
+        QueryResult<T> _result;
         public int MaxResults { get; set; }
         public int Start { get; set; }
         #endregion
@@ -24,7 +25,7 @@ namespace vb.Elastic.Fluent.Search
         /// <summary>
         /// Query Information Model Constractor
         /// </summary>
-        /// <param name="from">Paging Results Start from pFrom</param>
+        /// <param name="from">Paging Results Start from</param>
         /// <param name="max">Max Items to return</param>
         public FindRequest(int from = 0, int max = 20)
         {
@@ -39,9 +40,9 @@ namespace vb.Elastic.Fluent.Search
         /// Query term with should exists occurence
         /// </summary>
         /// <param name="term">Term Search operation</param>
-        public FindRequest<T> Or(SearchTerm<T> term)
+        public FindRequest<T> Should(SearchClause<T> term)
         {
-            term.Field.Operator = EnQueryOperator.Or;
+            term.Field.Operator = EnQueryOperator.Should;
             searchInfo.Fields.Add(term.Field);
             return this;
         }
@@ -49,9 +50,9 @@ namespace vb.Elastic.Fluent.Search
         /// Query term with MUST exists occurence
         /// </summary>
         /// <param name="term">Term Search operation</param>
-        public FindRequest<T> And(SearchTerm<T> term)
+        public FindRequest<T> Must(SearchClause<T> term)
         {
-            term.Field.Operator = EnQueryOperator.And;
+            term.Field.Operator = EnQueryOperator.Must;
             searchInfo.Fields.Add(term.Field);
             return this;
         }
@@ -59,7 +60,7 @@ namespace vb.Elastic.Fluent.Search
         /// Query term with NOT exists occurence
         /// </summary>
         /// <param name="term">Term Search operation</param>
-        public FindRequest<T> Not(SearchTerm<T> term)
+        public FindRequest<T> Not(SearchClause<T> term)
         {
             term.Field.Operator = EnQueryOperator.Not;
             searchInfo.Fields.Add(term.Field);
@@ -266,9 +267,11 @@ namespace vb.Elastic.Fluent.Search
                 throw new Exception("Low Level Fail Call.", searchResponse.OriginalException);
             }
             //handle result
-            var result = new QueryResult<T>
+            _result = new QueryResult<T>
             {
                 Documents = searchResponse.Documents.AsEnumerable(),
+                Scores = searchResponse.Hits.Select(s=>s.Score),
+                TotalResuts = searchResponse.Total
             };
             //get aggregations if any
             if (searchInfo.termDictionary != null)
@@ -315,12 +318,12 @@ namespace vb.Elastic.Fluent.Search
 
                             bucketDictionary.Add(bucket.Key, agMetric);
                         }
-                        result.Aggregations.Grouped.Add(termKey, bucketDictionary);
+                        _result.Aggregations.Grouped.Add(termKey, bucketDictionary);
                     }
 
                 }
             }
-            return result;
+            return _result;
         }
         #endregion
     }

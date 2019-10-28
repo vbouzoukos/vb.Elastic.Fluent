@@ -53,25 +53,39 @@ namespace vb.Elastic.Fluent.Core
         /// <summary>
         /// Used as prefix to index name
         /// </summary>
-        public string InstallationName { get; set; }
+        public string ApplicationName { get; set; }
         public string AppVersion { get; set; }
 
         /// <summary>
         /// Connects with elasticsearch service
         /// </summary>
         /// <param name="appVersion">Node connection url</param>
+        /// <param name="applicationName">Installation Identifier</param>
         /// <param name="elasticUri">Node connection url</param>
-        /// <param name="installName">Installation Identifier</param>
-        public void Connect(string appVersion, string elasticUri, string installName)
+        public void Connect(string appVersion, string applicationName, string elasticUri)
         {
             var uri = new Uri(elasticUri);
             var settings = new ConnectionSettings(uri);
-            InstallationName = installName;
+            ApplicationName = applicationName;
             AppVersion = appVersion;
 #if DEBUG
             settings.RequestTimeout(TimeSpan.FromSeconds(150));
             settings.DisableDirectStreaming(true);
 #endif
+            _client = new ElasticClient(settings);
+            Status = EnConnectionStatus.Connected;
+        }
+
+        /// <summary>
+        /// Connects with elasticsearch service
+        /// </summary>
+        /// <param name="appVersion">Node connection url</param>
+        /// <param name="applicationName">Installation Identifier</param>
+        /// <param name="settings">A connection settings instance</param>
+        public void Connect(string appVersion, string applicationName, ConnectionSettings settings)
+        {
+            ApplicationName = applicationName;
+            AppVersion = appVersion;
             _client = new ElasticClient(settings);
             Status = EnConnectionStatus.Connected;
         }

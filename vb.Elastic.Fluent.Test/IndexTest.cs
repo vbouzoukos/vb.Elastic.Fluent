@@ -12,7 +12,7 @@ namespace vb.Elastic.Fluent.Test
     {
         public IndexTest()
         {
-            Manager.Instance.Connect("1", "http://localhost:9200", "test");
+            Manager.Instance.Connect("1", "test", "http://localhost:9200");
         }
         [Fact]
         public void Indexing()
@@ -27,7 +27,7 @@ namespace vb.Elastic.Fluent.Test
             IndexManager.IndexEntity(expected, true);
             var searchData = new FindRequest<SampleDocument>(0, 10);
             var results = searchData
-                .And(SearchTerm<SampleDocument>.Term(x => x.Id, expected.Id))
+                .Must(SearchClause<SampleDocument>.Term(x => x.Id, expected.Id))
                 .Execute();
             var actual = results.Documents.FirstOrDefault();
             Assert.Equal(expected.Id, actual.Id);
@@ -84,9 +84,9 @@ namespace vb.Elastic.Fluent.Test
             IndexManager.BulkInsert(expected);
             var searchData = new FindRequest<SampleDocument>(0, 10);
             var results = searchData
-                .Or(SearchTerm<SampleDocument>.Term(x => x.Content, "thisfind"))
-                .Or(SearchTerm<SampleDocument>.Term(x => x.Title, "alpha"))
-                .Or(SearchTerm<SampleDocument>.DateFuture(x => x.DocDate, new DateTime(2019, 11, 5)))
+                .Should(SearchClause<SampleDocument>.Term(x => x.Content, "thisfind"))
+                .Should(SearchClause<SampleDocument>.Term(x => x.Title, "alpha"))
+                .Should(SearchClause<SampleDocument>.GreaterThan(x => x.DocDate, new DateTime(2019, 11, 5)))
                 .Sort(x => x.Sort)
                 .Execute();
             var actual = results.Documents.ToList();
@@ -179,7 +179,7 @@ namespace vb.Elastic.Fluent.Test
             IndexManager.IndexAttachment(expected[0], true);
             var searchData = new FindRequest<SampleAttachment>(0, 10);
             var results = searchData
-                .Or(SearchTerm<SampleAttachment>.Match(x => x.Data.Content, "text"))
+                .Should(SearchClause<SampleAttachment>.Match(x => x.Data.Content, "text"))
                 .Execute();
             var actual = results.Documents.ToList();
             Assert.Equal(expected.Count, actual.Count);
@@ -215,7 +215,7 @@ namespace vb.Elastic.Fluent.Test
             IndexManager.BulkInsert(expected);
             var searchData = new FindRequest<SampleLocation>(0, 10);
             var results = searchData
-                .Or(SearchTerm<SampleLocation>.Distance(x => x.Location, 38.044631, 23.724513, 500))
+                .Should(SearchClause<SampleLocation>.Distance(x => x.Location, 38.044631, 23.724513, 500))
                 .GeoSort(x => x.Location, 38.044631, 23.724513)
                 .Execute();
             var actual = results.Documents.ToList();
@@ -266,7 +266,7 @@ namespace vb.Elastic.Fluent.Test
             IndexManager.BulkInsert(expected);
             var searchData = new FindRequest<SampleWeight>(0, 10);
             var results = searchData
-                .Or(SearchTerm<SampleWeight>.Range(x => x.Weight, 119, 201))
+                .Should(SearchClause<SampleWeight>.Range(x => x.Weight, 119, 201))
                 .Sort(x => x.Weight)
                 .Execute();
             var actual = results.Documents.ToList();
@@ -298,7 +298,7 @@ namespace vb.Elastic.Fluent.Test
             IndexManager.BulkInsert(expected);
             var searchData = new FindRequest<SampleWeight>(0, 10);
             var results = searchData
-                .Or(SearchTerm<SampleWeight>.GreaterThan(x => x.Weight, 119))
+                .Should(SearchClause<SampleWeight>.GreaterThan(x => x.Weight, 119))
                 .Sort(x => x.Weight)
                 .Execute();
             var actual = results.Documents.ToList();
@@ -328,7 +328,7 @@ namespace vb.Elastic.Fluent.Test
             IndexManager.BulkInsert(expected);
             var searchData = new FindRequest<SampleWeight>(0, 10);
             var results = searchData
-                .Or(SearchTerm<SampleWeight>.LessThan(x => x.Weight, 110))
+                .Should(SearchClause<SampleWeight>.LessThan(x => x.Weight, 110))
                 .Sort(x => x.Weight)
                 .Execute();
             var actual = results.Documents.ToList();
@@ -360,9 +360,9 @@ namespace vb.Elastic.Fluent.Test
             IndexManager.BulkInsert(expected);
             var searchData = new FindRequest<SampleNest>(0, 10);
             var results = searchData
-                .And(SearchTerm<SampleNest>.Range(x => x.Items, new DateTime(2019, 2, 7), new DateTime(2019, 6, 1), x => x.Items[0].Created))
-                .And(SearchTerm<SampleNest>.Range(x => x.Items, 2, 5, x => x.Items[0].Code))
-                .And(SearchTerm<SampleNest>.Term(x => x.Items, "item", x => x.Items[0].Data))
+                .Must(SearchClause<SampleNest>.Range(x => x.Items, new DateTime(2019, 2, 7), new DateTime(2019, 6, 1), x => x.Items[0].Created))
+                .Must(SearchClause<SampleNest>.Range(x => x.Items, 2, 5, x => x.Items[0].Code))
+                .Must(SearchClause<SampleNest>.Term(x => x.Items, "item", x => x.Items[0].Data))
                 .Execute();
             var actual = results.Documents.ToList();
             Assert.Equal(expected.Count, actual.Count);
@@ -401,7 +401,7 @@ namespace vb.Elastic.Fluent.Test
             IndexManager.BulkInsert(expected);
             var searchData = new FindRequest<SampleDate>(0, 10);
             var results = searchData
-                .Or(SearchTerm<SampleDate>.Range(x => x.DocDate, new DateTime(2019, 2, 7), new DateTime(2019, 6, 1)))
+                .Should(SearchClause<SampleDate>.Range(x => x.DocDate, new DateTime(2019, 2, 7), new DateTime(2019, 6, 1)))
                 .Sort(x => x.DocDate)
                 .Execute();
             var actual = results.Documents.ToList();
@@ -433,7 +433,7 @@ namespace vb.Elastic.Fluent.Test
             IndexManager.BulkInsert(expected);
             var searchData = new FindRequest<SampleDate>(0, 10);
             var results = searchData
-                .Or(SearchTerm<SampleDate>.GreaterThan(x => x.DocDate, new DateTime(2019, 2, 7)))
+                .Should(SearchClause<SampleDate>.GreaterThan(x => x.DocDate, new DateTime(2019, 2, 7)))
                 .Sort(x => x.DocDate)
                 .Execute();
             var actual = results.Documents.ToList();
@@ -463,7 +463,7 @@ namespace vb.Elastic.Fluent.Test
             IndexManager.BulkInsert(expected);
             var searchData = new FindRequest<SampleDate>(0, 10);
             var results = searchData
-                .Or(SearchTerm<SampleDate>.LessThan(x => x.DocDate, new DateTime(2019, 1, 7)))
+                .Should(SearchClause<SampleDate>.LessThan(x => x.DocDate, new DateTime(2019, 1, 7)))
                 .Sort(x => x.DocDate)
                 .Execute();
             var actual = results.Documents.ToList();
@@ -493,7 +493,7 @@ namespace vb.Elastic.Fluent.Test
             IndexManager.BulkInsert(expected);
             var searchData = new FindRequest<SampleItem>(0, 10);
             var results = searchData
-                .And(SearchTerm<SampleItem>.Term(x => x.Code, "A"))
+                .Must(SearchClause<SampleItem>.Term(x => x.Code, "A"))
                 .Execute();
             var actual = results.Documents.ToList();
             Assert.Single(actual);
@@ -501,7 +501,7 @@ namespace vb.Elastic.Fluent.Test
 
             searchData = new FindRequest<SampleItem>(0, 10);
             results = searchData
-                .And(SearchTerm<SampleItem>.Term(x => x.Sequence, 2))
+                .Must(SearchClause<SampleItem>.Term(x => x.Sequence, 2))
                 .Execute();
             actual = results.Documents.ToList();
             Assert.Single(actual);
@@ -557,7 +557,7 @@ namespace vb.Elastic.Fluent.Test
             IndexManager.BulkInsert(expected);
             var searchData = new FindRequest<SampleDocument>(0, 10);
             var results = searchData
-                .And(SearchTerm<SampleDocument>.Prefix(x => x.Content, "this"))
+                .Must(SearchClause<SampleDocument>.Prefix(x => x.Content, "this"))
                 .Sort(x => x.Sort)
                 .Execute();
             var actual = results.Documents.ToList();
@@ -624,7 +624,7 @@ namespace vb.Elastic.Fluent.Test
             IndexManager.BulkInsert(expected);
             var searchData = new FindRequest<SampleDocument>(0, 10);
             var results = searchData
-                .And(SearchTerm<SampleDocument>.Wildcard(x => x.Content, "th*s"))
+                .Must(SearchClause<SampleDocument>.Wildcard(x => x.Content, "th*s"))
                 .Sort(x => x.Sort)
                 .Execute();
             var actual = results.Documents.ToList();

@@ -61,7 +61,7 @@ namespace vb.Elastic.Fluent.Search
                 }
                 switch (field.Operator)
                 {
-                    case EnQueryOperator.And:
+                    case EnQueryOperator.Must:
                         andQuery &= mquery;
                         break;
                     case EnQueryOperator.Not:
