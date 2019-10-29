@@ -640,5 +640,69 @@ namespace vb.Elastic.Fluent.Test
             Assert.Equal(expected[1].DocDate, actual[1].DocDate);
             Assert.Equal(expected[1].Content, actual[1].Content);
         }
+        [Fact]
+        public void Quoted()
+        {
+            IndexManager.PurgeIndexes();
+            var expected = new List<SampleDocument>
+            {
+                new SampleDocument
+                {
+                    Id = "1",
+                    Sort = "1",
+                    Content = @"This a test",
+                    Title = "Alpha",
+                    DocDate=new DateTime(2019,11,7)
+                },
+                new SampleDocument
+                {
+                    Id = "2",
+                    Sort = "2",
+                    Content = @"Run a quoted test thisisasample",
+                    Title = "Alpha",
+                    DocDate=new DateTime(2019,11,7)
+                },
+                new SampleDocument
+                {
+                    Id = "3",
+                    Sort = "3",
+                    Content = @"no return test",
+                    Title = "Mex",
+                    DocDate=new DateTime(2019,11,7)
+                },
+                new SampleDocument
+                {
+                    Id = "4",
+                    Sort = "4",
+                    Content = @"find all of data",
+                    Title = "pep",
+                    DocDate=new DateTime(2019,11,1)
+                },
+                new SampleDocument
+                {
+                    Id = "5",
+                    Sort = "5",
+                    Content = @"date",
+                    Title = "date",
+                    DocDate=new DateTime(2019,11,7)
+                }
+            };
+            IndexManager.BulkInsert(expected);
+            var searchData = new FindRequest<SampleDocument>(0, 10);
+            var results = searchData
+                .Must(SearchClause<SampleDocument>.Match(x => x.Content, "\"find all \" date return quoted test"))
+                .Sort(x => x.Sort)
+                .Execute();
+            var actual = results.Documents.ToList();
+            Assert.Equal(expected.Count, actual.Count);
+            for (int i = 0; i < expected.Count; i++)
+            {
+                Assert.Equal(expected[i].Id, actual[i].Id);
+                Assert.Equal(expected[i].Sort, actual[i].Sort);
+                Assert.Equal(expected[i].Title, actual[i].Title);
+                Assert.Equal(expected[i].DocDate, actual[i].DocDate);
+                Assert.Equal(expected[i].Content, actual[i].Content);
+            }
+        }
     }
 }
