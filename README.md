@@ -10,9 +10,13 @@ A simple library to connect insert and search Items in elasticsearch nodes.
 ### Set up a connection to Elastic Search Service
 
 You connect into an Elastic Search Service using the Manager Instance
-The parameters are:
+
+The constructor arguments are:
+
 **Your Application Version**: The version of your application, used for upgrading
+
 **Your Application Name**: Your installation/application name name
+
 **Elastic Search Service Uri**: Elasticsearch Uri
 
 	Manager.Instance.Connect("1", "test", "http://localhost:9200");
@@ -28,16 +32,22 @@ Documents stored with IndexManager need to inherit from **EsDocument** class
 
 #### Indexing new documents
 To store new data you use the following calls of IndexManager
+
 **IndexEntity** Used to index a document
+
 The parameters are:
 **EsDocument Entity**: The entity of the document that will be indexed
+
 **Refresh Index (optional)**: Flag that refresh index state after inserting the document in order the document to be available in next calls (default is false)
 
 	IndexManager.IndexEntity(item, true);
 
 **BulkInsert** and **BulkInsertAsync** Used to store a collection of documents
+
 The parameters are:
+
 **EsDocument Collection**: The collection of document entities that will be indexed
+
 **Refresh Index(optional)**: Flag that refreshes index state after inserting the document in order the document to be available in next calls (default is true)
 
 	IndexManager.BulkInsert(collection, true);
@@ -49,19 +59,29 @@ The parameters are:
 To update the state of the documents you need to use the following call on IndexManager
 
 **UpdateEntity**
+
 The parameters are:
+
 **EsDocument Entity**: The entity of the document that will be indexed
+
 **Refresh Index (optional)**: Flag that refresh index state after inserting the document in order the document to be available in next calls (default is false)
 
 	IndexManager.UpdateEntity(item, true);
 
 #### Update or Insert documents Bulk Operation
 In order to update or insert a collection of new or existing documents with updated content you need to use the following calls
+
 **UpsertEntities** and **UpsertEntitiesAsync** Used to store a collection of documents
+
 The parameters are:
+
 **EsDocument Collection**: The collection of document entities that will be indexed
+
 **Expression of the Id field**: The expression that defines the id field (eg f=>f.Id)
+
 **Refresh Index(optional)**: Flag that refreshes index state after inserting the document in order the document to be available in next calls (default is false)
+
+
 
 	IndexManager.UpsertEntities(item, f=>f.Id, true);
 
