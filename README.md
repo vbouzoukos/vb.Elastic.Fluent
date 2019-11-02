@@ -87,8 +87,7 @@ In order to Index a file you need your document object to inherit from **EsAttac
 Then you need to use the following calls on IndexManager
 
 ## Insert new documents with attachment
-For insert you can use the attachment insert calls **IndexAttachment**, **BulkInsertAttachment** and **BulkInsertAttachmentAsync**
-like the similar calls for document
+For insert you can use the attachment insert calls **IndexAttachment**, **BulkInsertAttachment** and **BulkInsertAttachmentAsync** like the similar calls for document
 
 	IndexManager.IndexAttachment(item, true);
 	IndexManager.BulkInsertAttachment(item, true);
@@ -140,8 +139,11 @@ In order to generate query clauses need to use the Class **SearchClause**
 Match call arguments:
 
 **field**: The field where we search for matching terms
+
 **query**: Terms query in case you with to search for exact phrase include this phrase between double quotes (**""**)
+
 **nestedField** (**optional**)  : The nested field in case we want to search on a nested field in the field given
+
 **boost** (**optional**)  : Boost used on results
 
 	SearchClause<Document>.Match(x => x.Content, "clause")
@@ -153,8 +155,11 @@ Returns documents that contain an **exact** term in a provided field. You can us
 Term call arguments:
 
 **field**: The field where we search for matching terms
+
 **query**: The search term
+
 **nestedField** (**optional**)  : The nested field in case we want to search on a nested field in the field given
+
 **boost** (**optional**)  : Boost used on results
 
 	SearchClause<Document>.Term(x => x.Content, "clause")
@@ -166,8 +171,11 @@ Returns documents that contain a specific prefix in a provided field.
 Prefix call arguments:
 
 **field**: The field where we search for matching terms
+
 **query**: The search term
+
 **nestedField** (**optional**)  : The nested field in case we want to search on a nested field in the field given
+
 **boost** (**optional**)  : Boost used on results
 
 	SearchClause<Document>.Prefix(x => x.Content, "prefix")
@@ -179,8 +187,11 @@ Returns documents that contain terms matching * wildcard pattern.
 Wildcard call arguments:
 
 **field**: The field where we search for matching terms
+
 **query**: The search term with the wildcard character *****
+
 **nestedField** (**optional**)  : The nested field in case we want to search on a nested field in the field given
+
 **boost** (**optional**)  : Boost used on results
 
 	SearchClause<Document>.Wildcard(x => x.Content, "ela*c")
@@ -191,9 +202,13 @@ Returns documents that contain terms within a provided range.
 Range call arguments:
 
 **field**: The field where we search for matching terms
+
 **from**: From this number/date
+
 **to**: To this number/date
+
 **nestedField** (**optional**)  : The nested field in case we want to search on a nested field in the field given
+
 **boost** (**optional**)  : Boost used on results
 
 	SearchClause<Weight>.Range(x => x.Weight, 119, 201)
@@ -204,8 +219,11 @@ Returns documents that are Greater than the provided value.
 GreaterThan call arguments:
 
 **field**: The field where we search for matching terms
+
 **value**: The search term
+
 **nestedField** (**optional**)  : The nested field in case we want to search on a nested field in the field given
+
 **boost** (**optional**)  : Boost used on results
 
 	SearchClause<Weight>.GreaterThan(x => x.Weight, 119)
@@ -216,8 +234,11 @@ Returns documents that are Less than the provided value.
 LessThan call arguments:
 
 **field**: The field where we search for matching terms
+
 **value**: The search term
+
 **nestedField** (**optional**)  : The nested field in case we want to search on a nested field in the field given
+
 **boost** (**optional**)  : Boost used on results
 
 	SearchClause<Weight>.LessThan(x => x.Weight, 110)
@@ -229,10 +250,15 @@ Filters documents that include only hits that exists within a specific distance 
 Distance call arguments:
 
 **field**: The field where we search for matching terms
+
 **latitude**: Latitude of center
+
 **longitude**: Longitude of center
+
 **radius**: Radius of search circle
+
 **nestedField** (**optional**)  : The nested field in case we want to search on a nested field in the field given
+
 **boost** (**optional**)  : Boost used on results
 
 	SearchClause<Place>.Distance(x => x.Location, 38.044631, 23.724513, 500)
@@ -244,6 +270,7 @@ You use the **Get** method to generate a find request to elasticsearch service
 Get call arguments:
 
 **clause** : Search clause
+
 **sort** (**optional**) : Sort by Ascending Field
 
 	var results = searchData.Get(SearchClause<Document>.Match(x => x.Content, "my"))
@@ -289,6 +316,7 @@ In order to sort document by a field value you use the sort call
 Sort call arguments:
 
 **field**:  The sort field
+
 **sort** (**optional**) : True if direction of sort is Ascending use false for Descending(Default is True)
 
 ```
@@ -303,8 +331,11 @@ If you wish to sort by a GeoPoint you need to use the GeoSort call
 GeoSort  call arguments:
 
 **field**:  The sort field
+
 **longitude**: Longitude of center
+
 **radius**: Radius of search circle
+
 **sort** (**optional**) : True if direction of sort is Ascending use false for Descending(Default is True)
 
     var results = searchData
