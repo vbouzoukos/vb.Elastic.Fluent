@@ -472,6 +472,26 @@ namespace vb.Elastic.Fluent.Test
             Assert.Equal(expected[0].DocDate, actual[0].DocDate);
         }
         [Fact]
+        public void Get()
+        {
+            IndexManager.PurgeIndexes();
+            var expected = new List<SampleDocument>
+            {
+                new SampleDocument
+                {//0
+                    Id="1",
+                    Content="my content"
+                }
+            };
+            IndexManager.BulkInsert(expected);
+            var searchData = new FindRequest<SampleDocument>(0, 10);
+            var results = searchData
+                .Get(SearchClause<SampleDocument>.Match(x => x.Content, "my"));
+            var actual = results.Documents.ToList();
+            Assert.Single(actual);
+            Assert.Equal(expected[0].Id, actual[0].Id);
+        }
+        [Fact]
         public void Term()
         {
             IndexManager.PurgeIndexes();

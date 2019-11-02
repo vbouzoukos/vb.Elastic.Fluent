@@ -76,7 +76,7 @@ namespace vb.Elastic.Fluent.Search
         /// Search for documents  where the term is matched with wildcards *term*
         /// </summary>
         /// <param name="field">The field where we search for matching terms</param>
-        /// <param name="query">The search term</param>
+        /// <param name="query">The search term with the wildcard character *</param>
         /// <param name="nestedField">The nested field in case we want to search on a nested field in the field given</param>
         /// <param name="boost">Boost used on results</param>
         /// <returns></returns>
@@ -93,7 +93,7 @@ namespace vb.Elastic.Fluent.Search
         /// </summary>
         /// <param name="field">The field where we search for matching terms</param>
         /// <param name="from">From this number/date</param>
-        /// <param name="to">To this number/dste</param>
+        /// <param name="to">To this number/date</param>
         /// <param name="nestedField">The nested field in case we want to search on a nested field in the field given</param>
         /// <param name="boost">Boost used on results</param>
         /// <returns></returns>
@@ -143,7 +143,7 @@ namespace vb.Elastic.Fluent.Search
         /// </summary>
         /// <param name="field">Field with geo data</param>
         /// <param name="latitude">Latitude of center</param>
-        /// <param name="longitude">Latitude of center</param>
+        /// <param name="longitude">Longitude of center</param>
         /// <param name="radius">Radius of search circle</param>
         /// <param name="nestedField">nested field</param>
         /// <param name="boost">Boost on results</param>
