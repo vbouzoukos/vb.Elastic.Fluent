@@ -342,3 +342,20 @@ GeoSort  call arguments:
     	.Should(SearchClause<SampleLocation>.Distance(x => x.Location, 38.044631, 23.724513, 500))
         .GeoSort(x => x.Location, 38.044631, 23.724513)
         .Execute();
+
+### Searching in File Attachment Comment
+
+Attachment File indexed data is stored in the EsAttachment Data attribute. Data is an Attachment data type. The indexed contents of the file are indexed into the Content attribute. 
+
+    var results = searchData
+    	.Should(SearchClause<SampleAttachment>.Match(x => x.Data.Content, "text"))
+    	.Execute();
+### Nested Data Search
+
+Searching for specific attributes in nested data types needs to define the nested field we want to search. 
+
+    var results = searchData
+    	.Must(SearchClause<SampleNest>.Range(x => x.Items, new DateTime(2019, 2, 7), new DateTime(2019, 6, 1), x => x.Items[0].Created))
+    	.Must(SearchClause<SampleNest>.Range(x => x.Items, 2, 5, x => x.Items[0].Code))
+    	.Must(SearchClause<SampleNest>.Term(x => x.Items, "item", x => x.Items[0].Data))
+    	.Execute();
