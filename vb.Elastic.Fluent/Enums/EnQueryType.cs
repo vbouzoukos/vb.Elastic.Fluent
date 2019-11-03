@@ -3,10 +3,6 @@
     internal enum EnQueryType
     {
         /// <summary>
-        /// Common Term Query of Elastic Search
-        /// </summary>
-        CommonTerm,
-        /// <summary>
         /// Matches the value with full text search
         /// </summary>
         Match,
@@ -37,6 +33,18 @@
         /// <summary>
         /// Get dates younger than source
         /// </summary>
-        DateFuture
+        DateFuture,
+        /// <summary>
+        /// Numeric Range Query
+        /// </summary>
+        Range,
+        /// <summary>
+        /// Field value > search value
+        /// </summary>
+        GreaterThan,
+        /// <summary>
+        /// Field value < search value
+        /// </summary>
+        LessThan
     }
 }

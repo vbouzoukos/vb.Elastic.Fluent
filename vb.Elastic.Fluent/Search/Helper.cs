@@ -61,7 +61,7 @@ namespace vb.Elastic.Fluent.Search
                 }
                 switch (field.Operator)
                 {
-                    case EnQueryOperator.And:
+                    case EnQueryOperator.Must:
                         andQuery &= mquery;
                         break;
                     case EnQueryOperator.Not:
@@ -154,18 +154,11 @@ namespace vb.Elastic.Fluent.Search
         {
             switch (queryType)
             {
-                case EnQueryType.Match:
-                    return new MatchQuery
-                    {
-                        Field = field,
-                        Query = query.Value.ToString(),
-                        Fuzziness = Fuzziness.Auto,
-                        Boost = boost
-                    };
                 case EnQueryType.Term:
                     return new TermQuery
                     {
                         Field = field,
+                        IsVerbatim = true,
                         Value = query.Value.ToString(),
                         Boost = boost
                     };
@@ -197,6 +190,40 @@ namespace vb.Elastic.Fluent.Search
                         }
                         return q;
                     }
+                case EnQueryType.GreaterThan:
+                    {
+                        var q = new NumericRangeQuery
+                        {
+                            Field = field,
+                            GreaterThan = Convert.ToDouble(query.From),
+                            Boost = boost
+                        };
+                        return q;
+                    }
+                case EnQueryType.LessThan:
+                    {
+                        var q = new NumericRangeQuery
+                        {
+                            Field = field,
+                            LessThan = Convert.ToDouble(query.From),
+                            Boost = boost
+                        };
+                        return q;
+                    }
+                case EnQueryType.Range:
+                    {
+                        var q = new NumericRangeQuery
+                        {
+                            Field = field,
+                            GreaterThan = Convert.ToDouble(query.From),
+                            Boost = boost
+                        };
+                        if (query.To != null)
+                        {
+                            q.LessThan = Convert.ToDouble(query.To);
+                        }
+                        return q;
+                    }
                 case EnQueryType.DatePast:
                     {
                         var q = new DateRangeQuery
@@ -225,16 +252,17 @@ namespace vb.Elastic.Fluent.Search
                             Field = field,
                             Distance = new Distance(areaQuery.Distance),
                             Location = areaQuery.Center,
-                            DistanceType = GeoDistanceType.Arc,
+                            DistanceType = GeoDistanceType.Plane,
                             Boost = boost
                         };
                         return q;
                     }
                 default:
-                    return new CommonTermsQuery
+                    return new MatchQuery
                     {
                         Field = field,
                         Query = query.Value.ToString(),
+                        Fuzziness = Fuzziness.Auto,
                         Boost = boost
                     };
             }

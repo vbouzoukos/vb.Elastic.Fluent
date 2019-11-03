@@ -15,7 +15,8 @@ namespace vb.Elastic.Fluent.Search
     public class FindRequest<T> where T : EsDocument, new()
     {
         #region Attributes
-        private QueryInfo<T> searchInfo;
+        QueryInfo<T> searchInfo;
+        QueryResult<T> _result;
         public int MaxResults { get; set; }
         public int Start { get; set; }
         #endregion
@@ -24,7 +25,7 @@ namespace vb.Elastic.Fluent.Search
         /// <summary>
         /// Query Information Model Constractor
         /// </summary>
-        /// <param name="from">Paging Results Start from pFrom</param>
+        /// <param name="from">Paging Results Start from</param>
         /// <param name="max">Max Items to return</param>
         public FindRequest(int from = 0, int max = 20)
         {
@@ -35,34 +36,35 @@ namespace vb.Elastic.Fluent.Search
         #endregion
 
         #region Search Information
+
         /// <summary>
-        /// Query term with should exists occurence
+        /// Query clause with should exists occurence
         /// </summary>
-        /// <param name="term">Term Search operation</param>
-        public FindRequest<T> Or(SearchTerm<T> term)
+        /// <param name="clause">Clause Search operation</param>
+        public FindRequest<T> Should(SearchClause<T> clause)
         {
-            term.Field.Operator = EnQueryOperator.Or;
-            searchInfo.Fields.Add(term.Field);
+            clause.Field.Operator = EnQueryOperator.Should;
+            searchInfo.Fields.Add(clause.Field);
             return this;
         }
         /// <summary>
-        /// Query term with MUST exists occurence
+        /// Query clause with MUST exists occurence
         /// </summary>
-        /// <param name="term">Term Search operation</param>
-        public FindRequest<T> And(SearchTerm<T> term)
+        /// <param name="clause">Clause Search operation</param>
+        public FindRequest<T> Must(SearchClause<T> clause)
         {
-            term.Field.Operator = EnQueryOperator.And;
-            searchInfo.Fields.Add(term.Field);
+            clause.Field.Operator = EnQueryOperator.Must;
+            searchInfo.Fields.Add(clause.Field);
             return this;
         }
         /// <summary>
-        /// Query term with NOT exists occurence
+        /// Query clause with NOT exists occurence
         /// </summary>
-        /// <param name="term">Term Search operation</param>
-        public FindRequest<T> Not(SearchTerm<T> term)
+        /// <param name="clause">Clause Search operation</param>
+        public FindRequest<T> Not(SearchClause<T> clause)
         {
-            term.Field.Operator = EnQueryOperator.Not;
-            searchInfo.Fields.Add(term.Field);
+            clause.Field.Operator = EnQueryOperator.Not;
+            searchInfo.Fields.Add(clause.Field);
             return this;
         }
         /// <summary>
@@ -70,13 +72,25 @@ namespace vb.Elastic.Fluent.Search
         /// </summary>
         /// <returns>FindRequest with new sorting option</returns>
         /// <param name="field">The sort field</param>
-        /// <param name="ascending">True if direction of sort is Asceding use false for Descending(Default is True)</param>
+        /// <param name="ascending">True if direction of sort is Ascending use false for Descending(Default is True)</param>
         public FindRequest<T> Sort(Expression<Func<T, object>> field, bool ascending = true)
         {
             searchInfo.Sort.Add(new EsSort<T>(field, ascending));
             return this;
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="field">The sort field</param>
+        /// <param name="latitude">Latitude of center</param>
+        /// <param name="longitude">Longitude of center</param>
+        /// <param name="ascending">True if direction of sort is Ascending use false for Descending(Default is True)</param>
+        /// <returns></returns>
+        public FindRequest<T> GeoSort(Expression<Func<T, object>> field, double latitude, double longitude, bool ascending = true)
+        {
+            searchInfo.Sort.Add(new EsGeoSort<T>(field, latitude, longitude, ascending));
+            return this;
+        }
         /// <summary>
         /// Used to trim result fields
         /// </summary>
@@ -117,7 +131,7 @@ namespace vb.Elastic.Fluent.Search
             return this;
         }
         /// <summary>
-        /// Aggregate resuts over a term
+        /// Aggregate resuts over a clause
         /// </summary>
         /// <param name="groupField">Field that will be used as term to group aggregation results</param>
         /// <param name="field">Id field uppon the aggregation will be used</param>
@@ -179,6 +193,32 @@ namespace vb.Elastic.Fluent.Search
         #endregion
 
         #region Search
+
+        /// <summary>
+        /// Search on index using a search clause
+        /// </summary>
+        /// <param name="clause">Search clause</param>
+        /// <param name="sort">Sort by Ascending Field(optional)</param>
+        public QueryResult<T> Get(SearchClause<T> clause, Expression<Func<T, object>> sort = null)
+        {
+            Must(clause);
+            if (sort != null)
+            {
+                Sort(sort);
+            }
+            return Execute();
+        }
+        /// <summary>
+        /// Search on index using a search clause
+        /// </summary>
+        /// <param name="clause">Search clause</param>
+        /// <param name="sort">Sort by Descending Field(optional)</param>
+        public QueryResult<T> GetDesc(SearchClause<T> clause, Expression<Func<T, object>> sort)
+        {
+            Must(clause);
+            Sort(sort,false);
+            return Execute();
+        }
         /// <summary>
         /// Search on index
         /// </summary>
@@ -193,7 +233,15 @@ namespace vb.Elastic.Fluent.Search
                 //create sorting
                 foreach (var sort in searchInfo.Sort)
                 {
-                    sortingQuery.Add(new FieldSort { Field = sort.Field, Order = sort.Ascending ? SortOrder.Ascending : SortOrder.Descending });
+                    if (sort is EsGeoSort<T>)
+                    {
+                        var gsort = (EsGeoSort<T>)sort;
+                        sortingQuery.Add(new GeoDistanceSort { Field = gsort.Field, Unit = DistanceUnit.Meters, DistanceType = GeoDistanceType.Plane, Points = gsort.Points, Order = gsort.Ascending ? SortOrder.Ascending : SortOrder.Descending });
+                    }
+                    else
+                    {
+                        sortingQuery.Add(new FieldSort { Field = sort.Field, Order = sort.Ascending ? SortOrder.Ascending : SortOrder.Descending });
+                    }
                 }
             }
             else
@@ -253,9 +301,11 @@ namespace vb.Elastic.Fluent.Search
                 throw new Exception("Low Level Fail Call.", searchResponse.OriginalException);
             }
             //handle result
-            var result = new QueryResult<T>
+            _result = new QueryResult<T>
             {
                 Documents = searchResponse.Documents.AsEnumerable(),
+                Scores = searchResponse.Hits.Select(s => s.Score),
+                TotalResuts = searchResponse.Total
             };
             //get aggregations if any
             if (searchInfo.termDictionary != null)
@@ -302,12 +352,12 @@ namespace vb.Elastic.Fluent.Search
 
                             bucketDictionary.Add(bucket.Key, agMetric);
                         }
-                        result.Aggregations.Grouped.Add(termKey, bucketDictionary);
+                        _result.Aggregations.Grouped.Add(termKey, bucketDictionary);
                     }
 
                 }
             }
-            return result;
+            return _result;
         }
         #endregion
     }
